@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-#TODO:Change Project Name
-project(HELLO_WORLD)
+project(sqlite)
 
 # Enable export of compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
