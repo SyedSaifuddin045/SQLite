@@ -36,7 +36,7 @@ std::vector<std::string> run_script(const std::vector<std::string> &commands)
         close(out_pipe[0]);
 
         // Execute the program
-        execl("sqlite", "./db", nullptr);
+        execl("./sqlite", "./db", "test.db", nullptr);
         perror("execl"); // If execl fails
         exit(EXIT_FAILURE);
     }
@@ -82,7 +82,24 @@ std::vector<std::string> run_script(const std::vector<std::string> &commands)
     }
 }
 
-TEST(DatabaseTest, InsertAndRetrieveRow)
+class DatabaseTest : public ::testing::Test
+{
+protected:
+    // Cleanup before each test
+    void SetUp() override
+    {
+        // Delete the test.db file before each test
+        remove("test.db");
+    }
+
+    static void TearDownTestSuite()
+    {
+        // Delete the test.db file after all tests have finished
+        remove("test.db");
+    }
+};
+
+TEST_F(DatabaseTest, InsertAndRetrieveRow)
 {
     std::vector<std::string> result = run_script({
         "insert 1 user1 person1@example.com",
@@ -100,69 +117,83 @@ TEST(DatabaseTest, InsertAndRetrieveRow)
     ASSERT_EQ(result, expected);
 }
 
-TEST(DatabaseTest, AllowsInsertingStringsOfMaxLength)
+TEST_F(DatabaseTest, AllowsInsertingStringsOfMaxLength)
 {
-    // Define the maximum length strings
-    std::string long_username(32, 'a'); // "a" repeated 32 times
-    std::string long_email(255, 'a');   // "a" repeated 255 times
+    std::string long_username(32, 'a');
+    std::string long_email(255, 'a');
 
-    // Define the script commands to run
     std::vector<std::string> script = {
         "insert 1 " + long_username + " " + long_email,
         "select",
         ".exit"};
 
-    // Run the script and capture the result
     std::vector<std::string> result = run_script(script);
 
-    // Define the expected result
     std::vector<std::string> expected = {
         "db > Executed.",
         "db > (1, " + long_username + ", " + long_email + ")",
         "Executed.",
         "db > "};
 
-    // Check that the result matches the expected output
     EXPECT_EQ(result, expected);
 }
 
-TEST(DatabaseTest, PrintsErrorMessageIfStringsAreTooLong)
+TEST_F(DatabaseTest, PrintsErrorMessageIfStringsAreTooLong)
 {
-    // Define strings that exceed the maximum length
-    std::string long_username(33, 'a'); // "a" repeated 33 times (one more than the max)
-    std::string long_email(256, 'a');   // "a" repeated 256 times (one more than the max)
+    std::string long_username(33, 'a');
+    std::string long_email(256, 'a');
 
-    // Define the script commands to run
     std::vector<std::string> script = {
         "insert 1 " + long_username + " " + long_email,
         "select",
         ".exit"};
 
-    // Run the script and capture the result
     std::vector<std::string> result = run_script(script);
 
-    // Define the expected result
     std::vector<std::string> expected = {
-        "db > String is too long.", // The error message for long strings
-        "db > Executed.",           // This part is based on how your system handles errors
+        "db > String is too long.",
+        "db > Executed.",
         "db > "};
 
-    // Check that the result matches the expected output
     EXPECT_EQ(result, expected);
 }
 
-TEST(DatabaseTest, PrintsErrorMessageIfIdIsNegative)
+TEST_F(DatabaseTest, PrintsErrorMessageIfIdIsNegative)
 {
     std::vector<std::string> script = {
-        "insert -1 cstack foo@bar.com", // Negative ID
+        "insert -1 cstack foo@bar.com",
         "select",
         ".exit"};
     std::vector<std::string> result = run_script(script);
     std::vector<std::string> expected = {
-        "db > ID must be positive.", // The error message for a negative ID
-        "db > Executed.",            // Assuming the error is handled before execution
+        "db > ID must be positive.",
+        "db > Executed.",
         "db > "};
     EXPECT_EQ(result, expected);
+}
+
+TEST_F(DatabaseTest, KeepsDataAfterClosingConnection)
+{
+    std::vector<std::string> result1 = run_script({
+        "insert 1 user1 person1@example.com",
+        ".exit",
+    });
+
+    std::vector<std::string> expected1 = {
+        "db > Executed.",
+        "db > "};
+    EXPECT_EQ(result1, expected1);
+
+    std::vector<std::string> result2 = run_script({
+        "select",
+        ".exit",
+    });
+
+    std::vector<std::string> expected2 = {
+        "db > (1, user1, person1@example.com)",
+        "Executed.",
+        "db > "};
+    EXPECT_EQ(result2, expected2);
 }
 
 int main(int argc, char **argv)
