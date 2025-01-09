@@ -117,6 +117,32 @@ TEST(DatabaseTest, AllowsInsertingStringsOfMaxLength) {
     EXPECT_EQ(result, expected);
 }
 
+TEST(DatabaseTest, PrintsErrorMessageIfStringsAreTooLong) {
+    // Define strings that exceed the maximum length
+    std::string long_username(33, 'a'); // "a" repeated 33 times (one more than the max)
+    std::string long_email(256, 'a');  // "a" repeated 256 times (one more than the max)
+
+    // Define the script commands to run
+    std::vector<std::string> script = {
+        "insert 1 " + long_username + " " + long_email,
+        "select",
+        ".exit"
+    };
+
+    // Run the script and capture the result
+    std::vector<std::string> result = run_script(script);
+
+    // Define the expected result
+    std::vector<std::string> expected = {
+        "db > String is too long.",  // The error message for long strings
+        "db > Executed.",            // This part is based on how your system handles errors
+        "db > "
+    };
+
+    // Check that the result matches the expected output
+    EXPECT_EQ(result, expected);
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
