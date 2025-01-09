@@ -143,6 +143,21 @@ TEST(DatabaseTest, PrintsErrorMessageIfStringsAreTooLong) {
     EXPECT_EQ(result, expected);
 }
 
+TEST(DatabaseTest, PrintsErrorMessageIfIdIsNegative) {
+    std::vector<std::string> script = {
+        "insert -1 cstack foo@bar.com",  // Negative ID
+        "select",
+        ".exit"
+    };
+    std::vector<std::string> result = run_script(script);
+    std::vector<std::string> expected = {
+        "db > ID must be positive.",  // The error message for a negative ID
+        "db > Executed.",             // Assuming the error is handled before execution
+        "db > "
+    };
+    EXPECT_EQ(result, expected);
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
