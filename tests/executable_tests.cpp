@@ -90,6 +90,33 @@ TEST(DatabaseTest, InsertAndRetrieveRow) {
     ASSERT_EQ(result, expected);
 }
 
+TEST(DatabaseTest, AllowsInsertingStringsOfMaxLength) {
+    // Define the maximum length strings
+    std::string long_username(32, 'a'); // "a" repeated 32 times
+    std::string long_email(255, 'a');  // "a" repeated 255 times
+
+    // Define the script commands to run
+    std::vector<std::string> script = {
+        "insert 1 " + long_username + " " + long_email,
+        "select",
+        ".exit"
+    };
+
+    // Run the script and capture the result
+    std::vector<std::string> result = run_script(script);
+
+    // Define the expected result
+    std::vector<std::string> expected = {
+        "db > Executed.",
+        "db > (1, " + long_username + ", " + long_email + ")",
+        "Executed.",
+        "db > "
+    };
+
+    // Check that the result matches the expected output
+    EXPECT_EQ(result, expected);
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
