@@ -46,8 +46,8 @@ typedef enum
 typedef struct
 {
   uint32_t id;
-  char username[COLUMN_USERNAME_SIZE+1];
-  char email[COLUMN_EMAIL_SIZE+1];
+  char username[COLUMN_USERNAME_SIZE + 1];
+  char email[COLUMN_EMAIL_SIZE + 1];
 } Row;
 typedef struct
 {
@@ -103,7 +103,7 @@ void *row_slot(Table *table, uint32_t row_num)
   }
   uint32_t row_offset = row_num % ROWS_PER_PAGE;
   uint32_t byte_offset = row_offset * ROW_SIZE;
-  return (char*)page + byte_offset;
+  return (char *)page + byte_offset;
 }
 Table *new_table()
 {
@@ -155,25 +155,29 @@ MetaCommandRresult do_meta_command(InputBuffer *input_buffer, Table *table)
   }
 }
 
-PrepareResult prepare_insert(InputBuffer* input_buffer, Statement* statement) {
+PrepareResult prepare_insert(InputBuffer *input_buffer, Statement *statement)
+{
   statement->type = STATEMENT_INSERT;
 
-  char* keyword = strtok(input_buffer->buffer, " ");
-  char* id_string = strtok(NULL, " ");
-  char* username = strtok(NULL, " ");
-  char* email = strtok(NULL, " ");
+  char *keyword = strtok(input_buffer->buffer, " ");
+  char *id_string = strtok(NULL, " ");
+  char *username = strtok(NULL, " ");
+  char *email = strtok(NULL, " ");
 
-  if (id_string == NULL || username == NULL || email == NULL) {
+  if (id_string == NULL || username == NULL || email == NULL)
+  {
     return PREPARE_SYNTAX_ERROR;
   }
 
   int id = atoi(id_string);
-  if(id < 0)
+  if (id < 0)
     return PREPARE_NEGATIVE_ID;
-  if (strlen(username) > COLUMN_USERNAME_SIZE) {
+  if (strlen(username) > COLUMN_USERNAME_SIZE)
+  {
     return PREPARE_STRING_TOO_LONG;
   }
-  if (strlen(email) > COLUMN_EMAIL_SIZE) {
+  if (strlen(email) > COLUMN_EMAIL_SIZE)
+  {
     return PREPARE_STRING_TOO_LONG;
   }
 
@@ -188,7 +192,7 @@ PrepareResult prepare_statement(InputBuffer *input_buffer, Statement *statement)
 {
   if (strncmp(input_buffer->buffer, "insert", 6) == 0)
   {
-    return prepare_insert(input_buffer,statement);
+    return prepare_insert(input_buffer, statement);
   }
   if (strncmp(input_buffer->buffer, "select", 6) == 0)
   {
