@@ -240,14 +240,34 @@ TEST_F(DatabaseTest, PrintsOneNodeBtreeStructure)
         "db > Executed.",
         "db > Tree:",
         "leaf (size 3)",
-        "  - 0 : 3",
-        "  - 1 : 1",
-        "  - 2 : 2",
+        "  - 0 : 1",
+        "  - 1 : 2",
+        "  - 2 : 3",
         "db > ",
     };
 
     // Compare the actual result with the expected output
     EXPECT_EQ(result, expected);
+}
+
+TEST(DatabaseTests, PrintsErrorMessageForDuplicateId)
+{
+    std::vector<std::string> script = {
+        "insert 1 user1 person1@example.com",
+        "insert 1 user1 person1@example.com",
+        "select",
+        ".exit"};
+
+    std::vector<std::string> expected_output = {
+        "db > Executed.",
+        "db > Error: Duplicate key.",
+        "db > (1, user1, person1@example.com)",
+        "Executed.",
+        "db > "};
+
+    std::vector<std::string> result = run_script(script);
+
+    EXPECT_EQ(result, expected_output);
 }
 
 int main(int argc, char **argv)
