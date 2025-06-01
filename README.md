@@ -44,7 +44,7 @@ CREATE TABLE users (
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/SyedSaifuddin045/SQLite.git
 cd sqlite-clone
 
 # Create build directory
